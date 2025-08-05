@@ -5,13 +5,15 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import ReviewForm, OrderForm
 from django.urls import reverse
+from django.contrib import messages
 
 def create_review(request):
     if request.method == 'POST':
         form = ReviewForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect(f"{reverse('thanks')}?source=review")  # Исправленная строка
+            messages.success(request, 'Ваш отзыв успешно отправлен! Спасибо!')
+            return redirect(f"{reverse('thanks')}?source=review")
     else:
         form = ReviewForm()
     return render(request, 'core/review_form.html', {'form': form})
@@ -20,8 +22,9 @@ def create_order(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
-            form.save()
-            return redirect(f"{reverse('thanks')}?source=order")  # Исправленная строка
+            order = form.save()
+            messages.success(request, 'Ваша заявка успешно отправлена! Мы скоро свяжемся с вами.')
+            return redirect(f"{reverse('thanks')}?source=order")
     else:
         form = OrderForm()
     return render(request, 'core/order_form.html', {'form': form})
@@ -30,7 +33,6 @@ def get_services(request):
     master_id = request.GET.get('master_id')
     services = Service.objects.filter(masters__id=master_id).values('id', 'name')
     return JsonResponse(list(services), safe=False)
-
 
 def landing(request):
     """
